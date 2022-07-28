@@ -1,27 +1,20 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 import { GetStaticProps, NextPage, GetStaticPaths } from 'next'
 import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react'
 
 import confetti from 'canvas-confetti'
 
+import { Pokemon } from '../../interfaces'
 import { pokeApi } from '../../api'
 import { Layout } from '../../components/layouts'
-import { Pokemon } from '../../interfaces'
 import { localFavorites } from '../../utils'
 
 interface Props {
   pokemon: Pokemon
 }
 
-const PokemonPage: NextPage<Props> = ({ pokemon }) => {
-  // console.log(pokemon);
-
-  // obtener el id del pokemon se puede de hacer del lado del cliente pero como es informacion estatica
-  // se puede de hacer del lado del servidor
-  // const router = useRouter()
-  // console.log(router.query);
-
+const PokemonByNamePage: NextPage<Props> = ({ pokemon }) => {
   const [isInFavorites, setIsInFavorites] = useState(
     localFavorites.existInFavorites(pokemon.id)
   )
@@ -118,25 +111,22 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
   )
 }
 
-// You should use getStaticPaths if you’re statically pre-rendering pages that use dynamic routes
-
 export const getStaticPaths: GetStaticPaths = async ctx => {
-  const pokemons151 = [...Array(151)].map((value, index) => `${index + 1}`) // crea un arreglo que va de 1 a 151, 151 porque el man ya sabe que son 151
-
+  const { data } = await pokeApi.get<Pokemon>(`/pokemon?limit=151`)
+  const pokemonNames: string[] = data.results.map(pokemon => pokemon.name)
   return {
-    paths: pokemons151.map(id => ({
-      params: { id }
+    paths: pokemonNames.map(name => ({
+      params: { name }
     })),
-    //  fallback: false -> si la persona pide una ruta que no existe, no se va a renderizar la pagina da 404
+
     fallback: false
   }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  // con params recibimos el id del pokemon
-  const { id } = params as { id: string } //  as { id: string } es para que el typescript sepa que es un objeto
+  const { name } = params as { name: string }
 
-  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${id}`)
+  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${name}`)
 
   return {
     props: {
@@ -144,5 +134,4 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   }
 }
-
-export default PokemonPage
+export default PokemonByNamePage
