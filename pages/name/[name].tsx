@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { GetStaticProps, NextPage, GetStaticPaths } from 'next'
 import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react'
@@ -15,9 +15,12 @@ interface Props {
 }
 
 const PokemonByNamePage: NextPage<Props> = ({ pokemon }) => {
-  const [isInFavorites, setIsInFavorites] = useState(
-    localFavorites.existInFavorites(pokemon.id)
-  )
+  const [isInFavorites, setIsInFavorites] = useState(false)
+
+  useEffect(() => {
+    setIsInFavorites(localFavorites.existInFavorites(pokemon.id))
+  }, [])
+
   const onToggleFavorite = () => {
     // renderizado desde el cliente
     localFavorites.toggleFavorite(pokemon.id)
